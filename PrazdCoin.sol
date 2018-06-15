@@ -1,20 +1,6 @@
 pragma solidity ^0.4.22;
 
 // ----------------------------------------------------------------------------
-// 'FIXED' 'Example Fixed Supply Token' token contract
-//
-// Symbol      : FIXED
-// Name        : Example Fixed Supply Token
-// Total supply: 1,000,000.000000000000000000
-// Decimals    : 18
-//
-// Enjoy.
-//
-// (c) BokkyPooBah / Bok Consulting Pty Ltd 2017. The MIT Licence.
-// ----------------------------------------------------------------------------
-
-
-// ----------------------------------------------------------------------------
 // Safe maths
 // ----------------------------------------------------------------------------
 library SafeMath {
@@ -103,20 +89,6 @@ contract PrazdCoin is ERC20Interface, Owned {
  
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
-
-
-    // ------------------------------------------------------------------------
-    // Constructor
-    // ------------------------------------------------------------------------
-  // function PCN()  public {
-//        symbol = "PCN";
- //       name = "PrazdToken";
-  //      decimals = 18;
-//        _totalSupply = 1000000 * 10**uint(decimals);
- //       balances[owner] = _totalSupply;
-  //      Transfer(address(0), owner, _totalSupply);
-   // }
-
 
     // ------------------------------------------------------------------------
     // Total supply
