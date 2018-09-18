@@ -307,5 +307,13 @@ contract PrazdCoin is StandardToken, Ownable {
     MintFinished();
     return true;
   }
+  
+  function ForGame(address _game) returns(bool){
+      require(msg.sender==owner);
+      MakeOwnerSaleAgent();
+      AutoMinting(1000);
+      finishMinting();
+      transfer(_game,300);
+  } 
  
 }
