@@ -1,3 +1,4 @@
+pragma solidity ^0.4.23;
 /**
  * @title ERC20Basic
  * @dev Simpler version of ERC20 interface
@@ -47,6 +48,48 @@ library SafeMath {
   function add(uint256 a, uint256 b) internal pure returns (uint256) { 
     uint256 c = a + b; assert(c >= a);
     return c;
+  }
+ 
+}
+
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
+contract Ownable {
+  address public owner;
+ 
+ 
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+ 
+ 
+  /**
+   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+   * account.
+   */
+  function Ownable() public {
+    owner = msg.sender;
+  }
+ 
+ 
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+ 
+ 
+  /**
+   * @dev Allows the current owner to transfer control of the contract to a newOwner.
+   * @param newOwner The address to transfer ownership to.
+   */
+  function transferOwnership(address newOwner) onlyOwner public {
+    require(newOwner != address(0));
+    OwnershipTransferred(owner, newOwner);
+    owner = newOwner;
   }
  
 }
@@ -166,56 +209,12 @@ contract StandardToken is ERC20, BasicToken {
   }
  
 }
- 
-/**
- * @title Ownable
- * @dev The Ownable contract has an owner address, and provides basic authorization control
- * functions, this simplifies the implementation of "user permissions".
- */
-contract Ownable {
-  address public owner;
- 
- 
-  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
- 
- 
-  /**
-   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
-   * account.
-   */
-  function Ownable() public {
-    owner = msg.sender;
-  }
- 
- 
-  /**
-   * @dev Throws if called by any account other than the owner.
-   */
-  modifier onlyOwner() {
-    require(msg.sender == owner);
-    _;
-  }
- 
- 
-  /**
-   * @dev Allows the current owner to transfer control of the contract to a newOwner.
-   * @param newOwner The address to transfer ownership to.
-   */
-  function transferOwnership(address newOwner) onlyOwner public {
-    require(newOwner != address(0));
-    OwnershipTransferred(owner, newOwner);
-    owner = newOwner;
-  }
- 
-}
- 
-/**
- * @title Mintable token
- * @dev Simple ERC20 Token example, with mintable token creation
- * @dev Issue: * https://github.com/OpenZeppelin/zeppelin-solidity/issues/120
- * Based on code by TokenMarketNet: https://github.com/TokenMarketNet/ico/blob/master/contracts/MintableToken.sol
- */
- 
+
+
+// Mintable Token 
+
+
+
 contract MintableToken is StandardToken, Ownable {
     
   event Mint(address indexed to, uint256 amount);
@@ -250,5 +249,63 @@ contract MintableToken is StandardToken, Ownable {
     return true;
   }
  
+  
 }
+
+// PrazdCoin
+
+contract PrazdCoin is StandardToken, Ownable {
+    
+    string public constant name = "Prazd Coin";
+    
+    string public constant symbol = "PRC";
+    
+    uint32 public constant decimals = 18;
+    
+    function MakeOwnerSaleAgent(){
+        require(msg.sender==owner);
+        setSaleAgent(owner);
+    }
+    
+    function AutoMinting(uint _value) {
+        require(msg.sender==owner);
+        mint(owner,_value);
+    }
+    
+    function ContractOwnerBalance() public view returns(uint256 balance){
+        return balances[owner]; 
+    }
+    
+  event Mint(address indexed to, uint256 amount);
+  
+  event MintFinished();
  
+  bool public mintingFinished = false;
+ 
+  address public saleAgent;
+ 
+  function setSaleAgent(address newSaleAgnet) public {
+    require(msg.sender == saleAgent || msg.sender == owner);
+    saleAgent = newSaleAgnet;
+  }
+ 
+  function mint(address _to, uint256 _amount) public returns (bool) {
+    require(msg.sender == saleAgent && !mintingFinished);
+    totalSupply = totalSupply.add(_amount);
+    balances[_to] = balances[_to].add(_amount);
+    Mint(_to, _amount);
+    return true;
+  }
+ 
+  /**
+   * @dev Function to stop minting new tokens.
+   * @return True if the operation was successful.
+   */
+  function finishMinting() public returns (bool) {
+    require((msg.sender == saleAgent || msg.sender == owner) && !mintingFinished);
+    mintingFinished = true;
+    MintFinished();
+    return true;
+  }
+ 
+}
