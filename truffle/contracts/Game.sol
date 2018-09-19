@@ -16,9 +16,13 @@ contract EasyGame{
     }
     
     uint8 constant MAX_PLAYERS = 2;
+    
+    ///
     uint8 constant ROCK = 0;
     uint8 constant SCISSORS = 1;
     uint8 constant PAPPER = 2;
+    ///
+    
     uint8 public counter;
     uint8 public rounds;
     uint public resCounter;
@@ -90,7 +94,28 @@ contract EasyGame{
              gameInfo[resCounter].lenS++;
         }
         
-        if(gameInfo[resCounter].lenF==3 && gameInfo[resCounter].lenS==3) rounds=0;
+        if(gameInfo[resCounter].lenF==3 && gameInfo[resCounter].lenS==3) {
+            rounds = 0;
+            // firstRound
+            
+            if(gameInfo[resCounter].scores[1].firstPlayer == gameInfo[resCounter].scores[1].secondPlayer){
+                gameInfo[resCounter].sPlayerScore++;
+                gameInfo[resCounter].fPlayerScore++;
+            }
+            
+            else if(gameInfo[resCounter].scores[1].firstPlayer == 1 && gameInfo[resCounter].scores[1].secondPlayer==0) 
+               gameInfo[resCounter].sPlayerScore++;
+            else if(gameInfo[resCounter].scores[1].firstPlayer == 0 && gameInfo[resCounter].scores[1].secondPlayer==1)
+               gameInfo[resCounter].fPlayerScore++;
+            else if(gameInfo[resCounter].scores[1].firstPlayer == 1 && gameInfo[resCounter].scores[1].secondPlayer==2)
+               gameInfo[resCounter].fPlayerScore++;
+            else if(gameInfo[resCounter].scores[1].firstPlayer == 2 && gameInfo[resCounter].scores[1].secondPlayer==1)
+               gameInfo[resCounter].sPlayerScore++;
+            else if(gameInfo[resCounter].scores[1].firstPlayer == 2 && gameInfo[resCounter].scores[1].secondPlayer==0)
+               gameInfo[resCounter].fPlayerScore++;
+            else if(gameInfo[resCounter].scores[1].firstPlayer == 0 && gameInfo[resCounter].scores[1].secondPlayer==2)
+               gameInfo[resCounter].sPlayerScore++;
+        }
     }
     
     function setBet(uint8 _bet) public returns(bool){
@@ -114,17 +139,6 @@ contract EasyGame{
                     RoundsGame(msg.sender, _bet, 2);
                     return true;
         }
-    }
-    
-    function CheckLen() public view returns(uint8[]){
-        uint8[] len;
-        len.push(gameInfo[resCounter].lenF);
-        len.push(gameInfo[resCounter].lenS);
-        return len;
-    }
-    
-    function Winner(uint8 _i) view public returns(uint8){
-       return gameInfo[resCounter].scores[_i].firstPlayer;
     }
     
     function StopGame() public payable {
