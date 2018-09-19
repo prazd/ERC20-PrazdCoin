@@ -16,14 +16,11 @@ contract EasyGame{
     }
     
     uint8 constant MAX_PLAYERS = 2;
-    
     uint8 constant ROCK = 0;
     uint8 constant SCISSORS = 1;
     uint8 constant PAPPER = 2;
-
     uint8 public counter;
     uint8 public rounds;
-    
     uint public resCounter;
     bool public gameStatus = false;
         
@@ -32,7 +29,7 @@ contract EasyGame{
          struct forBet {
          uint8 firstPlayer;
          uint8 secondPlayer;
-         }
+    }
         
         struct Player {
         address firstPlayer;
@@ -45,7 +42,6 @@ contract EasyGame{
         uint8 lenS;
     }
 
-    
     function WantToPlay() public returns(string){
         require(counter<MAX_PLAYERS, "Sorry, w8");
         require(gameStatus==false);
@@ -83,51 +79,52 @@ contract EasyGame{
         return IPC.balanceOf(this);
     }
     
-    function setBet(uint8 _bet) public returns(string){
-        require(msg.sender==gameInfo[resCounter].firstPlayer || msg.sender==gameInfo[resCounter].secondPlayer);
-        require(rounds!=0);
+    function RoundsGame(address _player, uint8 _bet, uint8 _round) private {
         address secondPlayer = gameInfo[resCounter].secondPlayer;
         address firstPlayer = gameInfo[resCounter].firstPlayer;
-        // round1
-        if(rounds==1){
-            if(msg.sender==firstPlayer && gameInfo[resCounter].lenF==0){
-                gameInfo[resCounter].scores[rounds].firstPlayer = _bet;
-                gameInfo[resCounter].lenF++;
-                return "1 round; firstPlayer";
-            }else if(msg.sender==secondPlayer && gameInfo[resCounter].lenS==0){
-                gameInfo[resCounter].scores[rounds].secondPlayer = _bet;
-                gameInfo[resCounter].lenS++;
-                return "1 round; secondPlayer";
-            }
-            if(gameInfo[resCounter].lenS==1 && gameInfo[resCounter].lenF==1){
-                //round2
-                rounds++;
-                if(msg.sender==firstPlayer && gameInfo[resCounter].lenF==1){
-                     gameInfo[resCounter].scores[rounds].firstPlayer = _bet;
-                     gameInfo[resCounter].lenF++;
-                     return "1 Player;2 round";
-                }else if(msg.sender==secondPlayer && gameInfo[resCounter].lenS==1){
-                    gameInfo[resCounter].scores[rounds].secondPlayer = _bet;
-                    gameInfo[resCounter].lenF++;
-                    return "2 Player;2round";
-                }
-                if(gameInfo[resCounter].lenS==2 && gameInfo[resCounter].lenF==2){
-                    //round3 
-                    rounds++;
-                     if(msg.sender==firstPlayer && gameInfo[resCounter].lenF==2){
-                     gameInfo[resCounter].scores[rounds].firstPlayer = _bet;
-                     gameInfo[resCounter].lenF++;
-                     return "1 Player;3 round";
-                }else if(msg.sender==secondPlayer && gameInfo[resCounter].lenS==2){
-                    gameInfo[resCounter].scores[rounds].secondPlayer = _bet;
-                    gameInfo[resCounter].lenF++;
-                    return "2 Player;3 round";
-                }
-                   
-                }
-            }
+        if(_player==firstPlayer && gameInfo[resCounter].lenF ==_round){
+             gameInfo[resCounter].scores[rounds].firstPlayer = _bet;
+             gameInfo[resCounter].lenF++;
+        }else if(_player==secondPlayer && gameInfo[resCounter].lenS==_round){
+             gameInfo[resCounter].scores[rounds].secondPlayer = _bet;
+             gameInfo[resCounter].lenS++;
         }
         
+        if(gameInfo[resCounter].lenF==3 && gameInfo[resCounter].lenS==3) rounds=0;
+    }
+    
+    function setBet(uint8 _bet) public returns(bool){
+        require(msg.sender==gameInfo[resCounter].firstPlayer || msg.sender==gameInfo[resCounter].secondPlayer);
+        require(rounds!=0);
+        require(_bet==0 || _bet==1 || _bet==2);
+        // round 1
+        if(gameInfo[resCounter].lenF<1 || gameInfo[resCounter].lenS<1){
+                    RoundsGame(msg.sender, _bet, 0);
+                    if(gameInfo[resCounter].lenF==1 && gameInfo[resCounter].lenS==1) rounds++;
+                    return true;
+        }
+        if(gameInfo[resCounter].lenS<2 || gameInfo[resCounter].lenF<2){
+        //round2
+                    RoundsGame(msg.sender, _bet, 1);
+                    if(gameInfo[resCounter].lenF==2 && gameInfo[resCounter].lenS==2) rounds++;
+                    return true;
+        }
+        if(gameInfo[resCounter].lenS<3 || gameInfo[resCounter].lenF<3){
+        //round3 
+                    RoundsGame(msg.sender, _bet, 2);
+                    return true;
+        }
+    }
+    
+    function CheckLen() public view returns(uint8[]){
+        uint8[] len;
+        len.push(gameInfo[resCounter].lenF);
+        len.push(gameInfo[resCounter].lenS);
+        return len;
+    }
+    
+    function Winner(uint8 _i) view public returns(uint8){
+       return gameInfo[resCounter].scores[_i].firstPlayer;
     }
     
     function StopGame() public payable {
