@@ -25,16 +25,24 @@ contract EasyGame{
     uint8 public rounds;
     
     uint public resCounter;
-    address public firstPlayer;
-    address public secondPlayer;
-  
     bool public gameStatus = false;
+        
+    mapping(uint=>Player) public gameInfo;
     
-    mapping(uint256=>address) public results;
-    
+         struct forBet {
+         uint8 firstPlayer;
+         uint8 secondPlayer;
+         }
+        
         struct Player {
+        address firstPlayer;
+        address secondPlayer;
         uint8 fPlayerScore;
         uint8 sPlayerScore;
+        address winner;
+        mapping(uint8=>forBet) scores;
+        uint8 lenF;
+        uint8 lenS;
     }
 
     
@@ -42,29 +50,30 @@ contract EasyGame{
         require(counter<MAX_PLAYERS, "Sorry, w8");
         require(gameStatus==false);
         if(counter==0){
-            firstPlayer = msg.sender;
+            gameInfo[resCounter].firstPlayer = msg.sender;
             counter++;
             return "You are the firstPlayer";
         }
         else if(counter==1){
-            if(msg.sender==firstPlayer){
+            if(msg.sender==gameInfo[resCounter].firstPlayer){
                 return "You can't play with yourself";
             }
-            secondPlayer = msg.sender;
+            gameInfo[resCounter].secondPlayer = msg.sender;
             counter++;
             gameStatus = true;
+            rounds = 1;
             return "You are the secondPlayer";
         }
     }
     
     function SeeMyPartner() public view returns(address){
-        require(msg.sender==firstPlayer || msg.sender==secondPlayer);
+        require(msg.sender==gameInfo[resCounter].firstPlayer || msg.sender==gameInfo[resCounter].secondPlayer);
         require(counter==MAX_PLAYERS);
-        if(msg.sender==firstPlayer){
-            return secondPlayer;
+        if(msg.sender==gameInfo[resCounter].firstPlayer){
+            return gameInfo[resCounter].secondPlayer;
         }
-        else if(msg.sender==secondPlayer){
-            return firstPlayer;
+        else if(msg.sender==gameInfo[resCounter].secondPlayer){
+            return gameInfo[resCounter].firstPlayer;
         }
     }
     
@@ -74,39 +83,78 @@ contract EasyGame{
         return IPC.balanceOf(this);
     }
     
+    function setBet(uint8 _bet) public returns(string){
+        require(msg.sender==gameInfo[resCounter].firstPlayer || msg.sender==gameInfo[resCounter].secondPlayer);
+        require(rounds!=0);
+        address secondPlayer = gameInfo[resCounter].secondPlayer;
+        address firstPlayer = gameInfo[resCounter].firstPlayer;
+        // round1
+        if(rounds==1){
+            if(msg.sender==firstPlayer && gameInfo[resCounter].lenF==0){
+                gameInfo[resCounter].scores[rounds].firstPlayer = _bet;
+                gameInfo[resCounter].lenF++;
+                return "1 round; firstPlayer";
+            }else if(msg.sender==secondPlayer && gameInfo[resCounter].lenS==0){
+                gameInfo[resCounter].scores[rounds].secondPlayer = _bet;
+                gameInfo[resCounter].lenS++;
+                return "1 round; secondPlayer";
+            }
+            if(gameInfo[resCounter].lenS==1 && gameInfo[resCounter].lenF==1){
+                //round2
+                rounds++;
+                if(msg.sender==firstPlayer && gameInfo[resCounter].lenF==1){
+                     gameInfo[resCounter].scores[rounds].firstPlayer = _bet;
+                     gameInfo[resCounter].lenF++;
+                     return "1 Player;2 round";
+                }else if(msg.sender==secondPlayer && gameInfo[resCounter].lenS==1){
+                    gameInfo[resCounter].scores[rounds].secondPlayer = _bet;
+                    gameInfo[resCounter].lenF++;
+                    return "2 Player;2round";
+                }
+                if(gameInfo[resCounter].lenS==2 && gameInfo[resCounter].lenF==2){
+                    //round3 
+                    rounds++;
+                     if(msg.sender==firstPlayer && gameInfo[resCounter].lenF==2){
+                     gameInfo[resCounter].scores[rounds].firstPlayer = _bet;
+                     gameInfo[resCounter].lenF++;
+                     return "1 Player;3 round";
+                }else if(msg.sender==secondPlayer && gameInfo[resCounter].lenS==2){
+                    gameInfo[resCounter].scores[rounds].secondPlayer = _bet;
+                    gameInfo[resCounter].lenF++;
+                    return "2 Player;3 round";
+                }
+                   
+                }
+            }
+        }
+        
+    }
     
-    function StopGame(address _winner) public payable {
+    function StopGame() public payable {
        require(counter==MAX_PLAYERS);
        require(msg.sender==owner);
        require(rounds==3);
-       
-       results[resCounter] = _winner;
+       IPrazdCoin IPC = IPrazdCoin(tokenContract_);
+       address _winner;
+       if(gameInfo[resCounter].fPlayerScore > gameInfo[resCounter].sPlayerScore){
+           _winner = gameInfo[resCounter].firstPlayer;
+           IPC.transfer(_winner,10);
+       }else if(gameInfo[resCounter].fPlayerScore==gameInfo[resCounter].sPlayerScore){
+           _winner = 0x0000000000000000000000000000000000000000;
+       }else if(gameInfo[resCounter].sPlayerScore>gameInfo[resCounter].fPlayerScore){
+           _winner = gameInfo[resCounter].secondPlayer;
+           IPC.transfer(_winner,10);
+       }
+       gameInfo[resCounter].winner = _winner;
        resCounter++;
        gameStatus = false;
-       IPrazdCoin IPC = IPrazdCoin(tokenContract_);
-       IPC.transfer(_winner,10);
+       rounds = 0;
        counter = 0;
     }
     
     
-    mapping(uint=>Player) public scores;
-
-    function GameProcess(uint8 _fbet,uint8 _sbet){
-        require(rounds<=3);
-        if(_fbet ==_sbet){
-            scores[resCounter].fPlayerScore;
-            scores[resCounter].sPlayerScore;
-        }else if(_fbet==0 && _sbet==1){
-            scores[resCounter].fPlayerScore++;
-            rounds++;
-        }else if(_fbet==1 && _sbet==0){
-            scores[resCounter].sPlayerScore++;
-            rounds++;
-        }
-    }
-    
     function ShowResults(uint256 _value) public returns(address){
-        return results[_value];
+        return gameInfo[_value].winner;
     }
     
 }
