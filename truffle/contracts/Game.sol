@@ -17,11 +17,10 @@ contract EasyGame{
     
     uint8 constant MAX_PLAYERS = 2;
     
-    ///
     uint8 constant ROCK = 0;
     uint8 constant SCISSORS = 1;
     uint8 constant PAPPER = 2;
-    ///
+    
     
     uint8 public counter;
     uint8 public rounds;
@@ -123,6 +122,7 @@ contract EasyGame{
     function setBet(uint8 _bet) public returns(bool){
         require(msg.sender==gameInfo[resCounter].firstPlayer || msg.sender==gameInfo[resCounter].secondPlayer);
         require(rounds!=0);
+        require(gameStatus==true);
         require(_bet==0 || _bet==1 || _bet==2);
         // round 1
         if(gameInfo[resCounter].lenF<1 || gameInfo[resCounter].lenS<1){
@@ -144,8 +144,8 @@ contract EasyGame{
         }
     }
     
-    function StopGame() private{
-       require(counter==MAX_PLAYERS);
+    function StopGame() private {
+       require(gameInfo[resCounter].lenF==3 && gameInfo[resCounter].lenS==3);
        IPrazdCoin IPC = IPrazdCoin(tokenContract_);
        address _winner;
        if(gameInfo[resCounter].fPlayerScore > gameInfo[resCounter].sPlayerScore){
@@ -160,10 +160,8 @@ contract EasyGame{
        gameInfo[resCounter].winner = _winner;
        resCounter++;
        gameStatus = false;
-       rounds = 0;
        counter = 0;
     }
-    
     
     function ShowResults(uint256 _value) public returns(address){
         return gameInfo[_value].winner;
