@@ -97,24 +97,26 @@ contract EasyGame{
         if(gameInfo[resCounter].lenF==3 && gameInfo[resCounter].lenS==3) {
             rounds = 0;
             // firstRound
-            
-            if(gameInfo[resCounter].scores[1].firstPlayer == gameInfo[resCounter].scores[1].secondPlayer){
-                gameInfo[resCounter].sPlayerScore++;
-                gameInfo[resCounter].fPlayerScore++;
+            uint8 i;
+            for(i=1;i<4;i++){
+                 if(gameInfo[resCounter].scores[i].firstPlayer == gameInfo[resCounter].scores[i].secondPlayer){
+                     gameInfo[resCounter].sPlayerScore++;
+                     gameInfo[resCounter].fPlayerScore++;
             }
-            
-            else if(gameInfo[resCounter].scores[1].firstPlayer == 1 && gameInfo[resCounter].scores[1].secondPlayer==0) 
+            else if(gameInfo[resCounter].scores[i].firstPlayer == 1 && gameInfo[resCounter].scores[i].secondPlayer==0) 
                gameInfo[resCounter].sPlayerScore++;
-            else if(gameInfo[resCounter].scores[1].firstPlayer == 0 && gameInfo[resCounter].scores[1].secondPlayer==1)
+            else if(gameInfo[resCounter].scores[i].firstPlayer == 0 && gameInfo[resCounter].scores[i].secondPlayer==1)
                gameInfo[resCounter].fPlayerScore++;
-            else if(gameInfo[resCounter].scores[1].firstPlayer == 1 && gameInfo[resCounter].scores[1].secondPlayer==2)
+            else if(gameInfo[resCounter].scores[i].firstPlayer == 1 && gameInfo[resCounter].scores[i].secondPlayer==2)
                gameInfo[resCounter].fPlayerScore++;
-            else if(gameInfo[resCounter].scores[1].firstPlayer == 2 && gameInfo[resCounter].scores[1].secondPlayer==1)
+            else if(gameInfo[resCounter].scores[i].firstPlayer == 2 && gameInfo[resCounter].scores[i].secondPlayer==1)
                gameInfo[resCounter].sPlayerScore++;
-            else if(gameInfo[resCounter].scores[1].firstPlayer == 2 && gameInfo[resCounter].scores[1].secondPlayer==0)
+            else if(gameInfo[resCounter].scores[i].firstPlayer == 2 && gameInfo[resCounter].scores[i].secondPlayer==0)
                gameInfo[resCounter].fPlayerScore++;
-            else if(gameInfo[resCounter].scores[1].firstPlayer == 0 && gameInfo[resCounter].scores[1].secondPlayer==2)
+            else if(gameInfo[resCounter].scores[i].firstPlayer == 0 && gameInfo[resCounter].scores[i].secondPlayer==2)
                gameInfo[resCounter].sPlayerScore++;
+            }
+            StopGame();
         }
     }
     
@@ -137,14 +139,13 @@ contract EasyGame{
         if(gameInfo[resCounter].lenS<3 || gameInfo[resCounter].lenF<3){
         //round3 
                     RoundsGame(msg.sender, _bet, 2);
+                    
                     return true;
         }
     }
     
-    function StopGame() public payable {
+    function StopGame() private{
        require(counter==MAX_PLAYERS);
-       require(msg.sender==owner);
-       require(rounds==3);
        IPrazdCoin IPC = IPrazdCoin(tokenContract_);
        address _winner;
        if(gameInfo[resCounter].fPlayerScore > gameInfo[resCounter].sPlayerScore){
