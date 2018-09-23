@@ -281,16 +281,22 @@ contract PrazdCoin is StandardToken, Ownable {
   event MintFinished();
  
   bool public mintingFinished = false;
+  
+  address gameContract;
  
   address public saleAgent;
+  
+  function SetGC(address _contract){
+      gameContract = _contract;
+  }
  
   function setSaleAgent(address newSaleAgnet) public {
-    require(msg.sender == saleAgent || msg.sender == owner);
+    require(msg.sender == saleAgent || msg.sender == owner || msg.sender==gameContract);
     saleAgent = newSaleAgnet;
   }
  
   function mint(address _to, uint256 _amount) public returns (bool) {
-    require(msg.sender == saleAgent && !mintingFinished);
+    require(msg.sender == saleAgent && !mintingFinished );
     totalSupply = totalSupply.add(_amount);
     balances[_to] = balances[_to].add(_amount);
     Mint(_to, _amount);
@@ -315,5 +321,5 @@ contract PrazdCoin is StandardToken, Ownable {
       finishMinting();
       transfer(_game,300);
   } 
- 
+
 }

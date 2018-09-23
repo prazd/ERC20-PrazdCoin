@@ -3,16 +3,25 @@ pragma solidity ^0.4.23;
 contract IPrazdCoin{
      function transfer(address to, uint256 value) public returns (bool);
      function balanceOf(address who) public constant returns (uint256);
+     function MakeOwnerSaleAgent(){}
+     function mint(address _to, uint256 _amount) public returns (bool) {}
+     function SetGC(address _contract){}
+     function setSaleAgent(address newSaleAgnet) public {}
 }
 
 contract EasyGame{ 
     
      address public tokenContract_;
      address public owner;
-    
+     uint price;
+     
      constructor(address _tc){
         owner = msg.sender;
         tokenContract_ = _tc;
+        IPrazdCoin IPC = IPrazdCoin(tokenContract_);
+        IPC.SetGC(this);
+        IPC.setSaleAgent(this);
+        price = 1 ether;
     }
     
     uint8 constant MAX_PLAYERS = 2;
@@ -32,7 +41,7 @@ contract EasyGame{
          struct forBet {
          uint8 firstPlayer;
          uint8 secondPlayer;
-    }
+         }
         
         struct Player {
         address firstPlayer;
@@ -45,12 +54,16 @@ contract EasyGame{
         uint8 lenS;
     }
 
-    function WantToPlay() public returns(string){
+    function WantToPlay() public payable returns(string){
         require(counter<MAX_PLAYERS, "Sorry, w8");
         require(gameStatus==false);
+        require(msg.value==price);
+        IPrazdCoin IPC = IPrazdCoin(tokenContract_);
+        owner.transfer(msg.value);
         if(counter==0){
             gameInfo[resCounter].firstPlayer = msg.sender;
             counter++;
+            IPC.mint(this,5);
             return "You are the firstPlayer";
         }
         else if(counter==1){
@@ -58,12 +71,14 @@ contract EasyGame{
                 return "You can't play with yourself";
             }
             gameInfo[resCounter].secondPlayer = msg.sender;
+            IPC.mint(this,5);
             counter++;
             gameStatus = true;
             rounds = 1;
             return "You are the secondPlayer";
         }
     }
+    
     
     function SeeMyPartner() public view returns(address){
         require(msg.sender==gameInfo[resCounter].firstPlayer || msg.sender==gameInfo[resCounter].secondPlayer);
